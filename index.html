@@ -5,19 +5,28 @@
             <title>Password Manager</title>
         </head>
         <body>
-            <h1>My Password Manager</h1>
-            <div id='auth'>
-                <input type='password' id='masterPassword' placeholder='Master Password'>
-                <button onclick='login()'>Unlock</button>
-            </div>
-            <div id='app' style='display: none;'>
-                <input type='url' id='website' placeholder='Website'>
-                <input type='text' id='username' placeholder='Username'>
-                <input type='password' id='password' placeholder='Password'>
-                <button onclick='addEntry()'>Add</button>
+            <section>
+                <h1>My Password Manager</h1>
+                <div id='auth'>
+                    <div id="login">
+                        <input type='password' id='masterPassword_login' placeholder='Master Password'>
+                        <button onclick='login()'>Unlock</button>
+                    </div>
+                    <div id="sign_up" style="display: none;">
+                        <input type="text" id='username_sign_up' placeholder="Username">
+                        <input type='password' id='masterPassword_sign_up' placeholder='Master Password'>
+                        <button onclick='sign_up()'>Unlock</button>
+                    </div>
+                </div>
+                <div id='app' style='display: none;'>
+                    <input type='url' id='website_app' placeholder='Website'>
+                    <input type='text' id='username_app' placeholder='Username'>
+                    <input type='password' id='password_app' placeholder='Password'>
+                    <button onclick='addEntry()'>Add</button>
 
-                <ul id='entries'></ul>
-            </div>
+                    <ul id='entries'></ul>
+                </div>
+            </section>
         </body>
         <script src='./js/script_index.js'></script>
-    </html>
+        </html>
