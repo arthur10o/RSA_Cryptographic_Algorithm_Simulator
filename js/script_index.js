@@ -31,6 +31,14 @@ addEventListener('load', function() {
     if (discusion_julie_tom.length > 0) display_message_for_hacker(discusion_julie_tom, chat_hack_element);
 })
 
+document.getElementById("monSwitch").addEventListener("change", function() {
+    if (this.checked) {
+      localStorage.setItem('mode_button', "on");
+    } else {
+        localStorage.setItem('mode_button', "off");
+    }
+  });
+
 function display_message_for_julie(message, chatElement) {
     let screen = chatElement.querySelector('.screen');
     for (let msg of message) {
@@ -118,6 +126,7 @@ function send_by_julie() {
     let message = document.getElementById('message_write_1').value;
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
+    let state_button = localStorage.getItem('mode_button') || [];
 
     if (!information_tom || !information_tom.public_key) return alert("Missing public key");
 
@@ -125,15 +134,24 @@ function send_by_julie() {
     let eBig = BigInt(e);
     let nBig = BigInt(n);
 
-    let message_to_number = convert_message_to_number(message);
-    let encrypted_message = RSA_encryption(eBig, message_to_number, nBig);
+    if (state_button == "off") {
+        discusion_julie_tom.push({
+            from: 'julie',
+            message: message.toString(),
+            encrypted: false,
+            timestamp: Date.now()
+        });
+    } else {
+        let message_to_number = convert_message_to_number(message);
+        let encrypted_message = RSA_encryption(eBig, message_to_number, nBig);
 
-    discusion_julie_tom.push({
-        from: 'julie',
-        message: encrypted_message.toString(),
-        encrypted: true,
-        timestamp: Date.now()
-    });
+        discusion_julie_tom.push({
+            from: 'julie',
+            message: encrypted_message.toString(),
+            encrypted: true,
+            timestamp: Date.now()
+        });
+    }
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
     document.getElementById('message_write_1').value = '';
@@ -144,6 +162,7 @@ function send_by_tom() {
     let message = document.getElementById('message_write_2').value;
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
     let information_julie = JSON.parse(localStorage.getItem('information_julie'));
+    let state_button = localStorage.getItem('mode_button') || [];
 
     if (!information_julie || !information_julie.public_key) return alert("Missing public key");
 
@@ -151,15 +170,24 @@ function send_by_tom() {
     let eBig = BigInt(e);
     let nBig = BigInt(n);
 
-    let message_to_number = convert_message_to_number(message);
-    let encrypted_message = RSA_encryption(eBig, message_to_number, nBig);
+    if (state_button == "off") {
+        discusion_julie_tom.push({
+            from: 'tom',
+            message: message.toString(),
+            encrypted: false,
+            timestamp: Date.now()
+        });
+    } else {
+        let message_to_number = convert_message_to_number(message);
+        let encrypted_message = RSA_encryption(eBig, message_to_number, nBig);
 
-    discusion_julie_tom.push({
-        from: 'tom',
-        message: encrypted_message.toString(),
-        encrypted: true,
-        timestamp: Date.now()
-    });
+        discusion_julie_tom.push({
+            from: 'tom',
+            message: encrypted_message.toString(),
+            encrypted: true,
+            timestamp: Date.now()
+        });
+    }
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
     document.getElementById('message_write_2').value = '';
