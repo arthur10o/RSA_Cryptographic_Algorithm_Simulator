@@ -2,31 +2,48 @@
     <html lang='en'>
         <head>
             <meta charset='UTF-8'>
-            <title>Password Manager</title>
+            <title>Online Chat</title>
+            <link rel="stylesheet" href="./css/style_index.css">
         </head>
         <body>
-            <section>
-                <h1>My Password Manager</h1>
-                <div id='auth'>
-                    <div id="login">
-                        <input type='password' id='masterPassword_login' placeholder='Master Password'>
-                        <button onclick='login()'>Unlock</button>
+            <div id="container">
+                <section id="chat_1">
+                    <h1>Julie's discussion</h1>
+                    <div class="phone">
+                        <div class="camera">
+                            <div class="lens"></div>
+                        </div>
+                        <div class="screen">
+                            
+                        </div>
+                        <div class="home_button"></div>
                     </div>
-                    <div id="sign_up" style="display: none;">
-                        <input type="text" id='username_sign_up' placeholder="Username">
-                        <input type='password' id='masterPassword_sign_up' placeholder='Master Password'>
-                        <button onclick='sign_up()'>Unlock</button>
+                </section>
+                <section id="chat_2">
+                    <h1>Tom's discussion</h1>
+                    <div class="phone">
+                        <div class="camera">
+                            <div class="lens"></div>
+                        </div>
+                        <div class="screen">
+                            
+                        </div>
+                        <div class="home_button"></div>
                     </div>
-                </div>
-                <div id='app' style='display: none;'>
-                    <input type='url' id='website_app' placeholder='Website'>
-                    <input type='text' id='username_app' placeholder='Username'>
-                    <input type='password' id='password_app' placeholder='Password'>
-                    <button onclick='addEntry()'>Add</button>
-
-                    <ul id='entries'></ul>
-                </div>
-            </section>
+                </section>
+                <section id="chat_hack">
+                    <h1>Hacker discussion</h1>
+                    <div class="phone">
+                        <div class="camera">
+                            <div class="lens"></div>
+                        </div>
+                        <div class="screen">
+                            
+                        </div>
+                        <div class="home_button"></div>
+                    </div>
+                </section>
+            </div>
         </body>
         <script src='./js/script_index.js'></script>
         </html>
