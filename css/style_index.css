@@ -68,7 +68,7 @@ body {
 .screen {
     width: 90%;
     flex: 1;
-    background-color: white;
+    background-color: blue;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
