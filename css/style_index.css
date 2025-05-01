@@ -32,7 +32,6 @@ body {
     padding: 10px;
     text-align: center;
     overflow: auto;
-    /* Ajoute du scroll local si trop de contenu */
 }
 
 .phone {
@@ -132,7 +131,6 @@ button {
     word-wrap: break-word;
     white-space: pre-wrap;
     max-width: 50%;
-    /* Ne dépasse pas la moitié de l'écran */
 }
 
 .message_send {
