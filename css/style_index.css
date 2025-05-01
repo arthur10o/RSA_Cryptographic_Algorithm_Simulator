@@ -8,7 +8,8 @@
     padding: 0;
 }
 
-html, body {
+html,
+body {
     overflow: hidden;
     height: 100vh;
     width: 100vw;
@@ -30,7 +31,8 @@ html, body {
     border: 1px solid #ccc;
     padding: 10px;
     text-align: center;
-    overflow: auto; /* Ajoute du scroll local si trop de contenu */
+    overflow: auto;
+    /* Ajoute du scroll local si trop de contenu */
 }
 
 .phone {
@@ -121,18 +123,42 @@ button {
     margin-bottom: 20px;
 }
 
-.message_send {
-    text-align: right;
-    background-color: #e1f5fe;
-    padding: 10px;
+.message_send,
+.message_received {
+    padding: 10px 14px;
     border-radius: 15px;
     margin: 5px 0;
+    display: inline-block;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 50%;
+    /* Ne dépasse pas la moitié de l'écran */
+}
+
+.message_send {
+    background-color: lightgreen;
+    color: white;
+    margin-left: auto;
+    text-align: left;
+    align-self: flex-end;
+    border-bottom-right-radius: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message_send p {
+    background-color: lightgreen;
 }
 
 .message_received {
+    background-color: #ccc;
+    color: black;
+    margin-right: auto;
     text-align: left;
-    background-color: #f1f1f1;
-    padding: 10px;
-    border-radius: 15px;
-    margin: 5px 0;
+    align-self: flex-start;
+    border-bottom-left-radius: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message_received p {
+    background-color: #ccc;
 }
