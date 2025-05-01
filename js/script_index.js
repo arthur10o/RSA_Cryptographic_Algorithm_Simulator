@@ -1,23 +1,156 @@
-function generate_RSA_keys() {
-    let [p, q] = choose_prime_number();
-    let n = calculate_n(p, q);
-    let phi_n = var_phi(p, q);
-    let e = define_e(phi_n);
-    let d = mod_inverse(e, phi_n);
-    let public_key = { e, n };
-    let private_key = { d, n };
+addEventListener('load', function() {
+    let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
 
-    let input = document.getElementById('masterPassword_login').value;
-    let m = convert_message_to_number(input);
+    let chat_1_element = document.getElementById('chat_1');
+    let chat_2_element = document.getElementById('chat_2');
+    let chat_hack_element = document.getElementById('chat_hack');
 
-    let encrypted_message = RSA_encryption(e, m, n);
-    let decrypted_message = RSA_decryption(encrypted_message, d, n);
-    let recovered_message = convert_number_to_message(decrypted_message);
+    let information_julie = JSON.parse(localStorage.getItem('information_julie')) || null;
+    let information_tom = JSON.parse(localStorage.getItem('information_tom')) || null;
 
-    console.log("Original message:", input);
-    console.log("Encrypted:", encrypted_message.toString());
-    console.log("Decrypted:", decrypted_message.toString());
-    console.log("Recovered message:", recovered_message);
+    function generate_user_keys(storageKey) {
+        let [ p, q ] = choose_prime_number();
+        let n = calculate_n( p, q );
+        let phi_n = var_phi( p, q );
+        let e = define_e( phi_n );
+        let d = mod_inverse( e, phi_n );
+        
+        let user_information = {
+            public_key : { e: e.toString(), n: n.toString() }, 
+            private_key : { d: d.toString(), n: n.toString() }
+        }
+
+        localStorage.setItem(storageKey, JSON.stringify(user_information));
+    }
+
+    if (!information_tom) generate_user_keys('information_tom');
+    if (!information_julie) generate_user_keys('information_julie');
+
+    function display_message_for_julie(message, chatElement) {
+        let screen = chatElement.querySelector('.screen');
+        for (let msg of message) {
+            let decrypted_message;
+            
+            let new_message = document.createElement('div');
+            new_message.classList.add(msg.from === 'julie' ? 'message_send' : 'message_received');
+
+            let new_p = document.createElement('p');
+
+            if (msg.encrypted) {
+                if (msg.from === 'julie') {
+                    let information_tom = JSON.parse(localStorage.getItem('information_tom'));
+                    decrypted_message = convert_number_to_message(
+                        RSA_decryption(BigInt(msg.message), BigInt(information_tom.private_key.d), BigInt(information_tom.private_key.n))
+                    );
+                    console.log("1");
+                } else if (msg.from === 'tom') {
+                    let information_julie = JSON.parse(localStorage.getItem('information_julie'));
+                    decrypted_message = convert_number_to_message(
+                        RSA_decryption(BigInt(msg.message), BigInt(information_julie.private_key.d), BigInt(information_julie.private_key.n))
+                    );
+                    console.log("2");
+                }
+            } else {
+                decrypted_message = msg.message;
+            }
+            new_p.textContent = decrypted_message;
+
+            new_message.appendChild(new_p);
+            screen.appendChild(new_message);
+            screen.scrollTop = screen.scrollHeight;
+        }
+    }
+
+    function display_message_for_tom(message, chatElement) {
+        let screen = chatElement.querySelector('.screen');
+        for (let msg of message) {
+            let decrypted_message;
+            
+            let new_message = document.createElement('div');
+            new_message.classList.add(msg.from === 'tom' ? 'message_send' : 'message_received');
+
+            let new_p = document.createElement('p');
+
+            if (msg.encrypted) {
+                if (msg.from === 'julie') {
+                    let information_tom = JSON.parse(localStorage.getItem('information_tom'));
+                    decrypted_message = convert_number_to_message(
+                        RSA_decryption(BigInt(msg.message), BigInt(information_tom.private_key.d), BigInt(information_tom.private_key.n))
+                    );
+                    console.log("1");
+                } else if (msg.from === 'tom') {
+                    let information_julie = JSON.parse(localStorage.getItem('information_julie'));
+                    decrypted_message = convert_number_to_message(
+                        RSA_decryption(BigInt(msg.message), BigInt(information_julie.private_key.d), BigInt(information_julie.private_key.n))
+                    );
+                    console.log("2");
+                }
+            } else {
+                decrypted_message = msg.message;
+            }
+            new_p.textContent = decrypted_message;
+
+            new_message.appendChild(new_p);
+            screen.appendChild(new_message);
+            screen.scrollTop = screen.scrollHeight;
+        }
+    }
+
+    if (discusion_julie_tom.length > 0) display_message_for_tom(discusion_julie_tom, chat_2_element);
+    if (discusion_julie_tom.length > 0) display_message_for_julie(discusion_julie_tom, chat_1_element);
+})
+
+function send_by_julie() {
+    let message = document.getElementById('message_write_1').value;
+    let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
+    let information_tom = JSON.parse(localStorage.getItem('information_tom'));
+
+    if (!information_tom || !information_tom.public_key) return alert("Missing public key");
+
+    let { e, n } = information_tom.public_key;
+    let eBig = BigInt(e);
+    let nBig = BigInt(n);
+
+    let message_to_number = convert_message_to_number(message);
+    let encrypted_message = RSA_encryption(eBig, message_to_number, nBig);
+
+    console.log("Message to number:", message_to_number.toString());
+    console.log("Modulus n:", nBig.toString());
+
+    discusion_julie_tom.push({
+        from: 'julie',
+        message: encrypted_message.toString(),
+        encrypted: true,
+        timestamp: Date.now()
+    });
+
+    localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
+    document.getElementById('message_write_1').value = '';
+}
+
+function send_by_tom() {
+    let message = document.getElementById('message_write_2').value;
+    let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
+    let information_julie = JSON.parse(localStorage.getItem('information_julie'));
+
+    if (!information_julie || !information_julie.public_key) return alert("Missing public key");
+
+    let { e, n } = information_julie.public_key;
+    let eBig = BigInt(e);
+    let nBig = BigInt(n);
+
+    let message_to_number = convert_message_to_number(message);
+    let encrypted_message = RSA_encryption(eBig, message_to_number, nBig);
+
+    discusion_julie_tom.push({
+        from: 'tom',
+        message: encrypted_message.toString(),
+        encrypted: true,
+        timestamp: Date.now()
+    });
+
+    localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
+    document.getElementById('message_write_2').value = '';
 }
 
 function is_prime(n) {
@@ -105,6 +238,7 @@ function convert_number_to_message(number) {
     }
     return message;
 }
+
 
 function modPow(base, exponent, modulus) {
     if (modulus === 1n) return 0n;
