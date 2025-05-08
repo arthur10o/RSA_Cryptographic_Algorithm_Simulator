@@ -381,7 +381,7 @@ function display_message_for_julie(message, chatElement) {
                 message_as_number = convert_message_to_number(decrypted_message);
             }
             
-            if (message_as_number !== decrypted_signature) {
+            if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
                 decrypted_message += '\n⚠️ (invalid signature)';
             } else {
                 decrypted_message += '\n✅ (Signature verified)';
@@ -448,7 +448,7 @@ function display_message_for_tom(message, chatElement) {
                 message_as_number = convert_message_to_number(decrypted_message);
             }
 
-            if (message_as_number !== decrypted_signature) {
+            if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
                 decrypted_message += '\n⚠️ (invalid signature)';
             } else {
                 decrypted_message += '\n✅ (Signature verified)';
