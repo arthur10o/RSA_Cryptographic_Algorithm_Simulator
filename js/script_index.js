@@ -376,15 +376,17 @@ function display_message_for_julie(message, chatElement) {
                 let e_tom = BigInt(information_tom.public_key.e);
                 let n_tom = BigInt(information_tom.public_key.n);
 
-                let signature_big = BigInt(msg.signature);
-                decrypted_signature = RSA_encryption(e_tom, signature_big, n_tom);
+                decrypted_signature = RSA_encryption(e_tom, BigInt(msg.signature), n_tom);
                 message_as_number = convert_message_to_number(decrypted_message);
             }
             
+            console.log("message_as_number" + message_as_number);
+            console.log('decrypted_signature' + decrypted_signature)
             if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
-                decrypted_message += '\n⚠️ (invalid signature)';
-            } else {
                 decrypted_message += '\n✅ (Signature verified)';
+                console.log("Comparaison de signature : ", decrypted_signature === message_as_number);
+            } else {
+                decrypted_message += '\n⚠️ (invalid signature)';
             }
         } else {
             decrypted_message = msg.message;
@@ -407,9 +409,8 @@ function display_message_for_tom(message, chatElement) {
     if (!information_tom || !information_tom.private_key) return alert('Missing public key');
     if (!information_julie || !information_julie.public_key) return alert('Missing private key');
 
-    let { d, n } = information_tom.private_key;
-    let dBig = BigInt(d);
-    let nBig = BigInt(n);
+    let d_tom = BigInt(information_tom.private_key.d);
+    let n_tom = BigInt(information_tom.private_key.n);
 
     for (let msg of message) {
         let decrypted_message;
@@ -427,12 +428,12 @@ function display_message_for_tom(message, chatElement) {
             if(Array.isArray(msg.message)) {
                 let blocks = msg.message;
                 let decrypted_blocks = blocks.map(part => {
-                    let decrypted_number = RSA_decryption(BigInt(part), dBig, nBig);
+                    let decrypted_number = RSA_decryption(BigInt(part), d_tom, n_tom);
                     return convert_number_to_message(decrypted_number);
                 });
                 decrypted_message = decrypted_blocks.join('');
             } else {
-                let decrypted_number = RSA_decryption(BigInt(msg.message), BigInt(d), BigInt(n));
+                let decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
                 decrypted_message = convert_number_to_message(decrypted_number);
             }
 
@@ -443,15 +444,15 @@ function display_message_for_tom(message, chatElement) {
                 let e_julie = BigInt(information_julie.public_key.e);
                 let n_julie = BigInt(information_julie.public_key.n);
 
-                let signature_big = BigInt(msg.signature);
-                decrypted_signature = RSA_encryption(e_julie, signature_big, n_julie);
+                decrypted_signature = RSA_encryption(e_julie, BigInt(msg.signature), n_julie);
                 message_as_number = convert_message_to_number(decrypted_message);
             }
 
             if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
-                decrypted_message += '\n⚠️ (invalid signature)';
-            } else {
                 decrypted_message += '\n✅ (Signature verified)';
+                console.log("Comparaison de signature : ", decrypted_signature === message_as_number);
+            } else {
+                decrypted_message += '\n⚠️ (invalid signature)';
             }
         } else {
             decrypted_message = msg.message;
