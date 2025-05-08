@@ -296,7 +296,6 @@ function send_by_julie() {
     if (state_button == 'off') {
         discusion_julie_tom.push({
             from: 'julie',
-            hacked: false,
             message: message.toString(),
             encrypted: false,
             timestamp: Date.now()
@@ -314,7 +313,6 @@ function send_by_julie() {
 
         discusion_julie_tom.push({
             from: 'julie',
-            hacked: false,
             message: encrypted_blocks,
             message_clair: message,
             encrypted: true,
@@ -433,7 +431,6 @@ function send_by_tom() {
     if (state_button == 'off') {
         discusion_julie_tom.push({
             from: 'tom',
-            hacked: false,
             message: message.toString(),
             encrypted: false,
             timestamp: Date.now()
@@ -450,7 +447,6 @@ function send_by_tom() {
 
         discusion_julie_tom.push({
             from: 'tom',
-            hacked: false,
             message: encrypted_blocks,
             message_clair: message,
             encrypted: true,
