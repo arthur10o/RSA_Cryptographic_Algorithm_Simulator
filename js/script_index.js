@@ -19,6 +19,13 @@ addEventListener('load', function () {
 
     let state_button = localStorage.getItem('mode_button') || 'off';
     let background_elemet = document.getElementsByClassName('background_element');
+    let switchInput = document.getElementById('monSwitch');
+    
+    if (state_button === 'on') {
+        switchInput.checked = true;
+    } else {
+        switchInput.checked = false;
+    }
     
     for (let elem of background_elemet) {
         if (state_button == 'on') {
@@ -525,6 +532,6 @@ function send_by_tom() {
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
     document.getElementById('message_write_2').value = '';
-    
+
     refresh_messages();
 }
