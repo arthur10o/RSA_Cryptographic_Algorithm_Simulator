@@ -32,6 +32,12 @@ body {
     padding: 10px;
     text-align: center;
     overflow: auto;
+    background-color: inherit;
+}
+
+h1,
+button {
+    background-color: inherit;
 }
 
 .phone {
@@ -166,6 +172,7 @@ button {
     display: inline-block;
     width: 60px;
     height: 34px;
+    background-color: inherit;
   }
 
   .switch input {
