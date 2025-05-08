@@ -209,6 +209,72 @@ function rsa_safe_block_split(message, nBig) {
     return blocks;
 }
 
+function simple_block_split(message, nBig) {
+     let maxBlockSize = count_max_size_package(nBig);
+     let blocks = [];
+     let current = '';
+ 
+     for (let char of message) {
+         current += char;
+         if (current.length >= maxBlockSize) {
+             blocks.push(current);
+             current = '';
+         }
+     }
+ 
+     if (current.length > 0) {
+         blocks.push(current);
+     }
+ 
+     return blocks;
+ }
+
+function send_by_hacker() {
+    let message = document.getElementById('message_write_3').value;
+    let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
+    let information_tom = JSON.parse(localStorage.getItem('information_tom'));
+    let state_button = localStorage.getItem('mode_button') || "off";
+
+    if (!information_tom || !information_tom.public_key) return alert("Missing public key");
+
+    let { e, n } = information_tom.public_key;
+    let eBig = BigInt(e);
+    let nBig = BigInt(n);
+
+    if (state_button == "off") {
+        discusion_julie_tom.push({
+            from: 'julie',
+            hacked: true,
+            message: message.toString(),
+            message_clair: message.toString(),
+            encrypted: false,
+            timestamp: Date.now()
+        });
+
+    } else {
+        let messages_blocks = rsa_safe_block_split(message, nBig);
+        let encrypted_blocks = messages_blocks.map(block => {
+            let message_to_number = convert_message_to_number(block);
+            if (message_to_number >= nBig) {
+                throw new Error("Message block too large for encryption modulus");
+            }
+            return RSA_encryption(eBig, message_to_number, nBig).toString();
+        });
+
+        discusion_julie_tom.push({
+            from: 'julie',
+            hacked: true,
+            message: encrypted_blocks,
+            message_clair: message,
+            encrypted: true,
+            timestamp: Date.now()
+        });
+    }
+    localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
+    document.getElementById('message_write_3').value = '';
+    refresh_messages();
+}
+
 function display_message_for_hacker(message, chatElement) {
     let screen = chatElement.querySelector('.screen');
 
@@ -217,9 +283,11 @@ function display_message_for_hacker(message, chatElement) {
         new_message.classList.add(msg.from === 'julie' ? 'message_send' : 'message_received');
 
         let new_p = document.createElement('p');
-
-        new_p.textContent = Array.isArray(msg.message) ? msg.message.join(' ') : msg.message;
-
+        if(msg.hacked == true) {
+            new_p.textContent = msg.message_clair;
+        } else if (msg.hacked == false) {
+            new_p.textContent = Array.isArray(msg.message) ? msg.message.join('') : msg.message;
+        }
         new_message.appendChild(new_p);
         screen.appendChild(new_message);
         screen.scrollTop = screen.scrollHeight;
@@ -241,6 +309,7 @@ function send_by_julie() {
     if (state_button == "off") {
         discusion_julie_tom.push({
             from: 'julie',
+            hacked: false,
             message: message.toString(),
             encrypted: false,
             timestamp: Date.now()
@@ -257,6 +326,7 @@ function send_by_julie() {
 
         discusion_julie_tom.push({
             from: 'julie',
+            hacked: false,
             message: encrypted_blocks,
             message_clair: message,
             encrypted: true,
@@ -373,6 +443,7 @@ function send_by_tom() {
     if (state_button == "off") {
         discusion_julie_tom.push({
             from: 'tom',
+            hacked: false,
             message: message.toString(),
             encrypted: false,
             timestamp: Date.now()
@@ -389,6 +460,7 @@ function send_by_tom() {
 
         discusion_julie_tom.push({
             from: 'tom',
+            hacked: false,
             message: encrypted_blocks,
             message_clair: message,
             encrypted: true,
