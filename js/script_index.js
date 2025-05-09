@@ -149,6 +149,10 @@ function mod_inverse(e, phi_n) {
 }
 
 function modPow(base, exponent, modulus) {
+    base = BigInt(base);
+    exponent = BigInt(exponent);
+    modulus = BigInt(modulus);
+
     if (modulus === 1n) return 0n;
     
     let result = 1n;
@@ -258,24 +262,9 @@ function rsa_safe_block_split(message, nBig) {
     return blocks;
 }
 
-function simple_block_split(message, nBig) {
-     let maxBlockSize = count_max_size_package(nBig);
-     let blocks = [];
-     let current = '';
- 
-     for (let char of message) {
-         current += char;
-         if (current.length >= maxBlockSize) {
-             blocks.push(current);
-             current = '';
-         }
-     }
- 
-     if (current.length > 0) {
-         blocks.push(current);
-     }
- 
-     return blocks;
+function rsa_signature (message, d, n) {
+    let message_number = convert_message_to_number(message);
+    return RSA_encryption(d, message_number, n).toString();
 }
 
 function send_by_julie() {
@@ -314,8 +303,7 @@ function send_by_julie() {
             return RSA_encryption(e_tom, message_to_number, n_tom).toString();
         });
 
-        let message_number = convert_message_to_number(message);
-        let signature = RSA_encryption(d_julie, message_number, n_julie).toString();
+        let signature = rsa_signature(message, d_julie, n_julie);
 
         discusion_julie_tom.push({
             from: 'julie',
@@ -380,11 +368,8 @@ function display_message_for_julie(message, chatElement) {
                 message_as_number = convert_message_to_number(decrypted_message);
             }
             
-            console.log("message_as_number" + message_as_number);
-            console.log('decrypted_signature' + decrypted_signature)
             if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
                 decrypted_message += '\n✅ (Signature verified)';
-                console.log("Comparaison de signature : ", decrypted_signature === message_as_number);
             } else {
                 decrypted_message += '\n⚠️ (invalid signature)';
             }
@@ -450,7 +435,6 @@ function display_message_for_tom(message, chatElement) {
 
             if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
                 decrypted_message += '\n✅ (Signature verified)';
-                console.log("Comparaison de signature : ", decrypted_signature === message_as_number);
             } else {
                 decrypted_message += '\n⚠️ (invalid signature)';
             }
@@ -501,8 +485,7 @@ function send_by_tom() {
             return RSA_encryption(e_julie, message_to_number, n_julie).toString();
         });
 
-        let message_number = convert_message_to_number(message);
-        let signature = RSA_encryption(d_tom, message_number, n_tom).toString();
+        let signature = rsa_signature(message, d_tom, n_tom);
 
         discusion_julie_tom.push({
             from: 'tom',
