@@ -262,12 +262,29 @@ function rsa_safe_block_split(message, nBig) {
     return blocks;
 }
 
-function rsa_signature (message, d, n) {
-    let message_number = convert_message_to_number(message);
+async function sha256(message) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+async function rsa_signature(message, d, n) {
+    let message_hash = await sha256(message);
+    let message_number = convert_message_to_number(message_hash);
     return RSA_encryption(d, message_number, n).toString();
 }
 
-function send_by_julie() {
+async function rsa_signature_verification(message_decrypted, signature_encrypted, e, n) {
+    let decrypted_signature = RSA_encryption(e, BigInt(signature_encrypted), n);
+    let signature = convert_number_to_message(decrypted_signature);
+    let message_decrypted_hash = await sha256(message_decrypted);
+    return message_decrypted_hash == signature;
+}
+
+async function send_by_julie() {
     let message = document.getElementById('message_write_1').value;
 
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
@@ -303,7 +320,7 @@ function send_by_julie() {
             return RSA_encryption(e_tom, message_to_number, n_tom).toString();
         });
 
-        let signature = rsa_signature(message, d_julie, n_julie);
+        let signature = await rsa_signature(message, d_julie, n_julie);
 
         discusion_julie_tom.push({
             from: 'julie',
@@ -321,7 +338,7 @@ function send_by_julie() {
     refresh_messages();
 }
 
-function display_message_for_julie(message, chatElement) {
+async function display_message_for_julie(message, chatElement) {
     let screen = chatElement.querySelector('.screen');
     let information_julie = JSON.parse(localStorage.getItem('information_julie'));
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
@@ -357,18 +374,10 @@ function display_message_for_julie(message, chatElement) {
                 decrypted_message = convert_number_to_message(decrypted_number);
             }
 
-            let message_as_number;
-            let decrypted_signature;
-
-            if(msg.signature) {
-                let e_tom = BigInt(information_tom.public_key.e);
-                let n_tom = BigInt(information_tom.public_key.n);
-
-                decrypted_signature = RSA_encryption(e_tom, BigInt(msg.signature), n_tom);
-                message_as_number = convert_message_to_number(decrypted_message);
-            }
+            let e_tom = BigInt(information_tom.public_key.e);
+            let n_tom = BigInt(information_tom.public_key.n);
             
-            if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
+            if (rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom)) {
                 decrypted_message += '\n✅ (Signature verified)';
             } else {
                 decrypted_message += '\n⚠️ (invalid signature)';
@@ -386,7 +395,7 @@ function display_message_for_julie(message, chatElement) {
     }
 }
 
-function display_message_for_tom(message, chatElement) {
+async function display_message_for_tom(message, chatElement) {
     let screen = chatElement.querySelector('.screen');
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
     let information_julie = JSON.parse(localStorage.getItem('information_julie'));
@@ -422,18 +431,10 @@ function display_message_for_tom(message, chatElement) {
                 decrypted_message = convert_number_to_message(decrypted_number);
             }
 
-            let message_as_number;
-            let decrypted_signature;
-
-            if(msg.signature) {
-                let e_julie = BigInt(information_julie.public_key.e);
-                let n_julie = BigInt(information_julie.public_key.n);
-
-                decrypted_signature = RSA_encryption(e_julie, BigInt(msg.signature), n_julie);
-                message_as_number = convert_message_to_number(decrypted_message);
-            }
-
-            if (typeof decrypted_signature === 'bigint' && typeof message_as_number === 'bigint' && decrypted_signature === message_as_number) {
+            let e_julie = BigInt(information_julie.public_key.e);
+            let n_julie = BigInt(information_julie.public_key.n);
+            
+            if (rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie)) {
                 decrypted_message += '\n✅ (Signature verified)';
             } else {
                 decrypted_message += '\n⚠️ (invalid signature)';
@@ -450,7 +451,7 @@ function display_message_for_tom(message, chatElement) {
     }
 }
 
-function send_by_tom() {
+async function send_by_tom() {
     let message = document.getElementById('message_write_2').value;
 
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
@@ -485,7 +486,7 @@ function send_by_tom() {
             return RSA_encryption(e_julie, message_to_number, n_julie).toString();
         });
 
-        let signature = rsa_signature(message, d_tom, n_tom);
+        let signature = await rsa_signature(message, d_tom, n_tom);
 
         discusion_julie_tom.push({
             from: 'tom',
