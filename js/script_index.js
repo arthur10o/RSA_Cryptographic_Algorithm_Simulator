@@ -284,6 +284,20 @@ async function rsa_signature_verification(message_decrypted, signature_encrypted
     return message_decrypted_hash == signature;
 }
 
+function generate_salt(lenght) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&~"#{}()[]-|`_^@=°+-*/£¤$%§!/:.;?,<>²âêûîôìùòñùµéèà';
+    let result = '';
+    for(let i = 0; i < lenght; i++) {
+        const random_index = Math.floor(Math.random() * chars.length);
+        result += chars[random_index];
+    }
+    return result;
+}
+
+function remove_salt(message_salt, lenght_salt) {
+    return message_salt.slice(lenght_salt);
+}
+
 async function send_by_julie() {
     let message = document.getElementById('message_write_1').value;
 
@@ -310,7 +324,10 @@ async function send_by_julie() {
             timestamp: Date.now()
         });
     } else {
-        let messages_blocks = rsa_safe_block_split(message, n_tom);
+        let salt = generate_salt(lenght_salt);
+        let message_salt = `${salt}::${message}`;
+
+        let messages_blocks = rsa_safe_block_split(message_salt, n_tom);
         let encrypted_blocks = messages_blocks.map(block => {
             let message_to_number = convert_message_to_number(block);
 
@@ -328,7 +345,8 @@ async function send_by_julie() {
             message_clair: message,
             encrypted: true,
             timestamp: Date.now(),
-            signature: signature
+            signature: signature,
+            lenght_salt : lenght_salt+2
         });
     }
 
@@ -369,6 +387,7 @@ async function display_message_for_julie(message, chatElement) {
                     return convert_number_to_message(decrypted_number);
                 });
                 decrypted_message = decrypted_blocks.join('');
+                decrypted_message = remove_salt(decrypted_message, msg.lenght_salt);
             } else {
                 let decrypted_number = RSA_decryption(BigInt(msg.message), d_julie, n_julie);
                 decrypted_message = convert_number_to_message(decrypted_number);
@@ -426,6 +445,7 @@ async function display_message_for_tom(message, chatElement) {
                     return convert_number_to_message(decrypted_number);
                 });
                 decrypted_message = decrypted_blocks.join('');
+                decrypted_message = remove_salt(decrypted_message, msg.lenght_salt);
             } else {
                 let decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
                 decrypted_message = convert_number_to_message(decrypted_number);
@@ -477,7 +497,10 @@ async function send_by_tom() {
             timestamp: Date.now()
         });
     } else {
-        let messages_blocks = rsa_safe_block_split(message, n_julie);
+        let salt = generate_salt(lenght_salt);
+        let message_salt = `${salt}::${message}`;
+
+        let messages_blocks = rsa_safe_block_split(message_salt, n_julie);
         let encrypted_blocks = messages_blocks.map(block => {
             let message_to_number = convert_message_to_number(block);
             if (message_to_number >= n_julie) {
@@ -494,7 +517,8 @@ async function send_by_tom() {
             message_clair: message,
             encrypted: true,
             timestamp: Date.now(),
-            signature: signature
+            signature: signature,
+            lenght_salt : lenght_salt+2
         });
     }
 
@@ -503,3 +527,5 @@ async function send_by_tom() {
 
     refresh_messages();
 }
+
+const lenght_salt = 256
