@@ -366,11 +366,11 @@ async function display_message(message, chatElement, from) {
             let is_valid;
 
             if(from =='julie') {
-                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie)
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie);
             } else if(from == 'tom') {
-                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom)
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom);
             } else if(from == 'hacker') {
-                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_hacker, n_hacker)
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_hacker, n_hacker);
             } 
             
             if (is_valid) {
