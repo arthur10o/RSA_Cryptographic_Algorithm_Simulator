@@ -17,6 +17,7 @@ addEventListener('load', function () {
 
     if (discusion_julie_tom.length > 0) display_message(discusion_julie_tom, chat_2_element, 'tom');
     if (discusion_julie_tom.length > 0) display_message(discusion_julie_tom, chat_1_element, 'julie');
+    if (discusion_julie_tom.length > 0) display_message(discusion_julie_tom, chat_hack_element, 'hacker');
 
     let switchInput = document.getElementById('monSwitch');
     let state_button = localStorage.getItem('mode_button') || 'off';
@@ -278,8 +279,8 @@ function generate_salt(lenght) {
     return result;
 }
 
-function remove_salt(message_salt, length_salt) {
-    return message_salt.slice(length_salt);
+function remove_salt(message_salt) {
+    return message_salt.split("::")[1] || '';
 }
 
 function decrypted_block(d, n, message) {
@@ -290,23 +291,30 @@ function decrypted_block(d, n, message) {
     });
 }
 
-function display_message(message, chatElement, from) {
+async function display_message(message, chatElement, from) {
     let screen = chatElement.querySelector('.screen');
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
     let information_julie = JSON.parse(localStorage.getItem('information_julie'));
+    let information_hacker = JSON.parse(localStorage.getItem('information_hacker'));
 
     if (!information_tom || !information_tom.private_key) return alert('Missing private key');
     if (!information_julie || !information_julie.private_key) return alert('Missing private key');
+    if (!information_hacker || !information_hacker.private_key) return alert('Missing private key');
     if (!information_julie || !information_julie.public_key) return alert('Missing public key');
     if (!information_tom || !information_tom.public_key) return alert('Missing public key');
+    if (!information_hacker || !information_hacker.public_key) return alert('Missing public key');
 
     let d_tom = BigInt(information_tom.private_key.d);
     let n_tom = BigInt(information_tom.private_key.n);
     let e_tom = BigInt(information_tom.public_key.e);
 
     let d_julie = BigInt(information_julie.private_key.d);
-    let n_julie= BigInt(information_julie.private_key.n);
+    let n_julie = BigInt(information_julie.private_key.n);
     let e_julie = BigInt(information_julie.public_key.e);
+
+    let d_hacker = BigInt(information_hacker.private_key.d);
+    let n_hacker = BigInt(information_hacker.private_key.n);
+    let e_hacker = BigInt(information_hacker.public_key.e);
 
     for (let msg of message) {
         let decrypted_message;
@@ -319,11 +327,15 @@ function display_message(message, chatElement, from) {
         if (msg.from == from) {
             if(from == 'tom') {
                 decrypted_message = msg.encrypted && msg.message_for_sender
-                    ? remove_salt(decrypted_block(d_tom, n_tom, msg.message_for_sender).join(''), msg.length_salt)
+                    ? remove_salt(decrypted_block(d_tom, n_tom, msg.message_for_sender).join(''))
                     : msg.message;
             } else if (from == 'julie') {
                 decrypted_message = msg.encrypted && msg.message_for_sender
-                    ? remove_salt(decrypted_block(d_julie, n_julie, msg.message_for_sender).join(''), msg.length_salt)
+                    ? remove_salt(decrypted_block(d_julie, n_julie, msg.message_for_sender).join(''))
+                    : msg.message;
+            } else if (from == 'hacker') {
+                decrypted_message = msg.encrypted && msg.message_for_sender
+                    ? remove_salt(decrypted_block(d_hacker, n_hacker, msg.message_for_sender).join(''))
                     : msg.message;
             }
         } else if(msg.encrypted) {
@@ -334,15 +346,19 @@ function display_message(message, chatElement, from) {
                     decrypted_blocks = decrypted_block(d_tom, n_tom, msg.message);
                 } else if(from == 'julie') {
                     decrypted_blocks = decrypted_block(d_julie, n_julie, msg.message);
+                } else if(from == 'hacker') {
+                    decrypted_blocks = decrypted_block(d_hacker, n_hacker, msg.message);
                 }
                 decrypted_message = decrypted_blocks.join('');
-                decrypted_message = remove_salt(decrypted_message, msg.length_salt);
+                decrypted_message = remove_salt(decrypted_message);
             } else {
                 let decrypted_number;
                 if(from == 'tom') {
                     decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
                 } else if(from == 'julie') {
                     decrypted_number = RSA_decryption(BigInt(msg.message), d_julie, n_julie);
+                } else if(from == 'hacker') {
+                    decrypted_number = RSA_decryption(BigInt(msg.message), d_hacker, n_hacker);
                 }
                 decrypted_message = convert_number_to_message(decrypted_number);
             }
@@ -350,9 +366,11 @@ function display_message(message, chatElement, from) {
             let is_valid;
 
             if(from =='julie') {
-                is_valid = rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie)
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie)
             } else if(from == 'tom') {
-                is_valid = rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom)
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom)
+            } else if(from == 'hacker') {
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_hacker, n_hacker)
             } 
             
             if (is_valid) {
@@ -385,17 +403,17 @@ function refresh_messages() {
 
     display_message([lastMessage], chat_2_element, 'tom');
     display_message([lastMessage], chat_1_element, 'julie');
+    display_message([lastMessage], chat_hack_element, 'hacker');
 }
 
-function message_to_send(from, message, encrypted_state, signature = '', length_salt = -2, message_for_sender) {
+function message_to_send(from, message, encrypted_state, signature = '', message_for_sender) {
     return {
         from: from,
         message: message,
         message_for_sender: message_for_sender,
         encrypted: encrypted_state,
         timestamp: Date.now(),
-        signature: signature,
-        length_salt : length_salt+2
+        signature: signature
     };
 }
 
@@ -473,7 +491,7 @@ async function send_message(message_elem, from) {
 
             signature = await rsa_signature(message, d_tom, n_tom);
         }
-        discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, length_salt, message_for_sender));
+        discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, message_for_sender));
     }
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
