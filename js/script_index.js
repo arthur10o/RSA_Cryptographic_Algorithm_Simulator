@@ -317,9 +317,15 @@ function display_message(message, chatElement, from) {
         let new_p = document.createElement('p');
 
         if (msg.from == from) {
-            decrypted_message = msg.encrypted && msg.message_for_sender
-            ? msg.message_for_sender
-            : msg.message;
+            if(from == 'tom') {
+                decrypted_message = msg.encrypted && msg.message_for_sender
+                    ? remove_salt(decrypted_block(d_tom, n_tom, msg.message_for_sender).join(''), msg.length_salt)
+                    : msg.message;
+            } else if (from == 'julie') {
+                decrypted_message = msg.encrypted && msg.message_for_sender
+                    ? remove_salt(decrypted_block(d_julie, n_julie, msg.message_for_sender).join(''), msg.length_salt)
+                    : msg.message;
+            }
         } else if(msg.encrypted) {
             let decrypted_blocks;
 
@@ -422,6 +428,7 @@ async function send_message(message_elem, from) {
         let message_salt = `${salt}::${message}`;
 
         let encrypted_blocks;
+        let message_for_sender;
         let signature;
 
         if(from == 'julie') {
@@ -432,6 +439,15 @@ async function send_message(message_elem, from) {
                     throw new Error('Message block too large for encryption modulus');
                 }
                 return RSA_encryption(e_tom, message_to_number, n_tom).toString();
+            });
+
+            messages_blocks = rsa_safe_block_split(message_salt, n_julie);
+            message_for_sender = messages_blocks.map(block => {
+                let message_to_number = convert_message_to_number(block);
+                if (message_to_number >= n_julie) {
+                    throw new Error('Message block too large for encryption modulus');
+                }
+                return RSA_encryption(e_julie, message_to_number, n_julie).toString();
             });
 
             signature = await rsa_signature(message, d_julie, n_julie);
@@ -446,9 +462,18 @@ async function send_message(message_elem, from) {
                 return RSA_encryption(e_julie, message_to_number, n_julie).toString();
             });
 
+            messages_blocks = rsa_safe_block_split(message_salt, n_tom);
+            message_for_sender = messages_blocks.map(block => {
+                let message_to_number = convert_message_to_number(block);
+                if (message_to_number >= n_tom) {
+                    throw new Error('Message block too large for encryption modulus');
+                }
+                return RSA_encryption(e_tom, message_to_number, n_tom).toString();
+            });
+
             signature = await rsa_signature(message, d_tom, n_tom);
         }
-        discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, length_salt, message));
+        discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, length_salt, message_for_sender));
     }
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
