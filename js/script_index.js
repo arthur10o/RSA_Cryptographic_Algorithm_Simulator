@@ -317,8 +317,8 @@ function display_message(message, chatElement, from) {
         let new_p = document.createElement('p');
 
         if (msg.from == from) {
-            decrypted_message = msg.encrypted && msg.message_clair
-            ? msg.message_clair
+            decrypted_message = msg.encrypted && msg.message_for_sender
+            ? msg.message_for_sender
             : msg.message;
         } else if(msg.encrypted) {
             let decrypted_blocks;
@@ -381,6 +381,18 @@ function refresh_messages() {
     display_message([lastMessage], chat_1_element, 'julie');
 }
 
+function message_to_send(from, message, encrypted_state, signature = '', length_salt = -2, message_for_sender) {
+    return {
+        from: from,
+        message: message,
+        message_for_sender: message_for_sender,
+        encrypted: encrypted_state,
+        timestamp: Date.now(),
+        signature: signature,
+        length_salt : length_salt+2
+    };
+}
+
 async function send_message(message_elem, from) {
     let message = document.getElementById(message_elem).value;
 
@@ -404,12 +416,7 @@ async function send_message(message_elem, from) {
     let e_julie = BigInt(information_julie.public_key.e);
 
     if (state_button == 'off') {
-        discusion_julie_tom.push({
-            from: from,
-            message: message.toString(),
-            encrypted: false,
-            timestamp: Date.now()
-        });
+        discusion_julie_tom.push(message_to_send(from, message, false));
     } else {
         let salt = generate_salt(length_salt);
         let message_salt = `${salt}::${message}`;
@@ -441,16 +448,7 @@ async function send_message(message_elem, from) {
 
             signature = await rsa_signature(message, d_tom, n_tom);
         }
-
-        discusion_julie_tom.push({
-            from: from,
-            message: encrypted_blocks,
-            message_clair: message,
-            encrypted: true,
-            timestamp: Date.now(),
-            signature: signature,
-            length_salt : length_salt+2
-        });
+        discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, length_salt, message));
     }
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
