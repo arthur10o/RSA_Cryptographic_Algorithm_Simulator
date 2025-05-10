@@ -257,16 +257,17 @@ async function sha256(message) {
 }
 
 async function rsa_signature(message, d, n) {
+    if (typeof message !== 'string') {
+        throw new Error("Le message doit être une chaîne de caractères");
+    }
     let message_hash = await sha256(message);
     let message_number = convert_message_to_number(message_hash);
     return RSA_encryption(d, message_number, n).toString();
 }
 
-async function rsa_signature_verification(message_decrypted, signature_encrypted, e, n) {
-    let decrypted_signature = RSA_encryption(e, BigInt(signature_encrypted), n);
-    let signature = convert_number_to_message(decrypted_signature);
-    let message_decrypted_hash = await sha256(message_decrypted);
-    return message_decrypted_hash == signature;
+async function rsa_signature_verification(message_decrypted, signature_encrypted, n, d) {
+    let new_signature = await rsa_signature(message_decrypted, d, n);
+    return signature_encrypted == new_signature;
 }
 
 function generate_salt(lenght) {
@@ -365,12 +366,10 @@ async function display_message(message, chatElement, from) {
 
             let is_valid;
 
-            if(from =='julie') {
-                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie);
-            } else if(from == 'tom') {
-                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom);
-            } else if(from == 'hacker') {
-                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, e_hacker, n_hacker);
+            if(msg.from == 'julie') {
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, n_julie, d_julie);
+            } else if(msg.from == 'tom') {
+                is_valid = await rsa_signature_verification(decrypted_message, msg.signature, n_tom, d_tom);
             } 
             
             if (is_valid) {
@@ -419,6 +418,10 @@ function message_to_send(from, message, encrypted_state, signature = '', message
 
 async function send_message(message_elem, from) {
     let message = document.getElementById(message_elem).value;
+
+    if(message == '') {
+        return;
+    }
 
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
