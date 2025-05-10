@@ -42,6 +42,19 @@ document.getElementById('monSwitch').addEventListener('change', function () {
     toogle_button();
 });
 
+document.addEventListener('keydown', function() {
+    if(event.key == 'Enter') {
+        const actif = document.activeElement;
+        if(actif.tagName == 'TEXTAREA') {
+            if(actif.id == 'message_write_1') {
+                send_message(actif.id, 'julie');
+            } else if(actif.id == 'message_write_2') {
+                send_message(actif.id, 'tom');
+            }
+        }
+    }
+});
+
 function toogle_button() {
     let state_button = localStorage.getItem('mode_button') || 'off';
     let background_element = document.getElementsByClassName('background_element');
