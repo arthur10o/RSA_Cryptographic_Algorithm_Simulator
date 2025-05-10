@@ -285,7 +285,7 @@ async function rsa_signature_verification(message_decrypted, signature_encrypted
 }
 
 function generate_salt(lenght) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&~"#{}()[]-|`_^@=°+-*/£¤$%§!/:.;?,<>²âêûîôìùòñùµéèà';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&~"#{}()[]-|`_^@=°+-*/£¤$%§!/:.;?,<>²çâêûîôìùòñùµéèà';
     let result = '';
     for(let i = 0; i < lenght; i++) {
         const random_index = Math.floor(Math.random() * chars.length);
