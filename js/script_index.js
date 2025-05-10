@@ -1,3 +1,5 @@
+const length_salt = 256
+
 addEventListener('load', function () {
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
 
@@ -13,27 +15,44 @@ addEventListener('load', function () {
     if (!information_tom) generate_user_keys('information_tom');
     if (!information_hacker) generate_user_keys('information_hacker');
 
-    if (discusion_julie_tom.length > 0) display_message_for_tom(discusion_julie_tom, chat_2_element);
-    if (discusion_julie_tom.length > 0) display_message_for_julie(discusion_julie_tom, chat_1_element);
+    if (discusion_julie_tom.length > 0) display_message(discusion_julie_tom, chat_2_element, 'tom');
+    if (discusion_julie_tom.length > 0) display_message(discusion_julie_tom, chat_1_element, 'julie');
 
-    let state_button = localStorage.getItem('mode_button') || 'off';
-    let background_elemet = document.getElementsByClassName('background_element');
     let switchInput = document.getElementById('monSwitch');
+    let state_button = localStorage.getItem('mode_button') || 'off';
     
     if (state_button === 'on') {
         switchInput.checked = true;
     } else {
         switchInput.checked = false;
+        localStorage.setItem('mode_button', 'off')
     }
 
-    for (let elem of background_elemet) {
+    toogle_button();
+})
+
+document.getElementById('monSwitch').addEventListener('change', function () {
+    if (this.checked) {
+        localStorage.setItem('mode_button', 'on');
+    } else {
+        localStorage.setItem('mode_button', 'off');
+    }
+
+    toogle_button();
+});
+
+function toogle_button() {
+    let state_button = localStorage.getItem('mode_button') || 'off';
+    let background_element = document.getElementsByClassName('background_element');
+
+    for (let elem of background_element) {
         if (state_button == 'on') {
             elem.style.backgroundColor  = 'green';
         } else if (state_button == 'off') {
             elem.style.backgroundColor  = 'darkred';
         }
     }
-})
+}
 
 function generate_user_keys(storageKey) {
     let [p, q] = choose_prime_number();
@@ -49,25 +68,6 @@ function generate_user_keys(storageKey) {
 
     localStorage.setItem(storageKey, JSON.stringify(user_information));
 }
-
-document.getElementById('monSwitch').addEventListener('change', function () {
-    if (this.checked) {
-        localStorage.setItem('mode_button', 'on');
-    } else {
-        localStorage.setItem('mode_button', 'off');
-    }
-
-    let state_button = localStorage.getItem('mode_button') || 'off';
-    let background_elemet = document.getElementsByClassName('background_element');
-    
-    for (let elem of background_elemet) {
-        if (state_button == 'on') {
-            elem.style.backgroundColor  = 'green';
-        } else if (state_button == 'off') {
-            elem.style.backgroundColor  = 'darkred';
-        }
-    }
-});
 
 function choose_prime_number() {
     let p, q;
@@ -200,24 +200,8 @@ function convert_number_to_message(number) {
     return message;
 }
 
-
 function RSA_decryption(encrypted_message, d, n) {
     return modPow(encrypted_message, d, n);
-}
-
-function refresh_messages() {
-    let chat_1_element = document.getElementById('chat_1');
-    let chat_2_element = document.getElementById('chat_2');
-    let chat_hack_element = document.getElementById('chat_hack');
-
-    let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
-
-    if (discusion_julie_tom.length === 0) return;
-
-    let lastMessage = discusion_julie_tom[discusion_julie_tom.length - 1];
-
-    display_message_for_tom([lastMessage], chat_2_element);
-    display_message_for_julie([lastMessage], chat_1_element);
 }
 
 function count_max_size_package(n) {
@@ -294,167 +278,78 @@ function generate_salt(lenght) {
     return result;
 }
 
-function remove_salt(message_salt, lenght_salt) {
-    return message_salt.slice(lenght_salt);
+function remove_salt(message_salt, length_salt) {
+    return message_salt.slice(length_salt);
 }
 
-async function send_by_julie() {
-    let message = document.getElementById('message_write_1').value;
-
-    let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
-    let information_tom = JSON.parse(localStorage.getItem('information_tom'));
-    let information_julie = JSON.parse(localStorage.getItem('information_julie'));
-
-    let state_button = localStorage.getItem('mode_button') || 'off';
-
-    if (!information_tom || !information_tom.public_key) return alert('Missing public key');
-    if (!information_julie || !information_julie.private_key) return alert('Missing private key');
-
-    let e_tom = BigInt(information_tom.public_key.e);
-    let n_tom = BigInt(information_tom.public_key.n);
-
-    let d_julie = BigInt(information_julie.private_key.d);
-    let n_julie = BigInt(information_julie.private_key.n);
-
-    if (state_button == 'off') {
-        discusion_julie_tom.push({
-            from: 'julie',
-            message: message.toString(),
-            encrypted: false,
-            timestamp: Date.now()
-        });
-    } else {
-        let salt = generate_salt(lenght_salt);
-        let message_salt = `${salt}::${message}`;
-
-        let messages_blocks = rsa_safe_block_split(message_salt, n_tom);
-        let encrypted_blocks = messages_blocks.map(block => {
-            let message_to_number = convert_message_to_number(block);
-
-            if (message_to_number >= n_tom) {
-                throw new Error('Message block too large for encryption modulus');
-            }
-            return RSA_encryption(e_tom, message_to_number, n_tom).toString();
-        });
-
-        let signature = await rsa_signature(message, d_julie, n_julie);
-
-        discusion_julie_tom.push({
-            from: 'julie',
-            message: encrypted_blocks,
-            message_clair: message,
-            encrypted: true,
-            timestamp: Date.now(),
-            signature: signature,
-            lenght_salt : lenght_salt+2
-        });
-    }
-
-    localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
-    document.getElementById('message_write_1').value = '';
-
-    refresh_messages();
+function decrypted_block(d, n, message) {
+    let blocks = message;
+    return blocks.map(part => {
+        let decrypted_number = RSA_decryption(BigInt(part), d, n);
+        return convert_number_to_message(decrypted_number);
+    });
 }
 
-async function display_message_for_julie(message, chatElement) {
+function display_message(message, chatElement, from) {
     let screen = chatElement.querySelector('.screen');
-    let information_julie = JSON.parse(localStorage.getItem('information_julie'));
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
+    let information_julie = JSON.parse(localStorage.getItem('information_julie'));
 
+    if (!information_tom || !information_tom.private_key) return alert('Missing private key');
     if (!information_julie || !information_julie.private_key) return alert('Missing private key');
-    if (!information_tom || !information_tom.private_key) return alert('Missing public key');
+    if (!information_julie || !information_julie.public_key) return alert('Missing public key');
+    if (!information_tom || !information_tom.public_key) return alert('Missing public key');
+
+    let d_tom = BigInt(information_tom.private_key.d);
+    let n_tom = BigInt(information_tom.private_key.n);
+    let e_tom = BigInt(information_tom.public_key.e);
 
     let d_julie = BigInt(information_julie.private_key.d);
     let n_julie= BigInt(information_julie.private_key.n);
+    let e_julie = BigInt(information_julie.public_key.e);
 
     for (let msg of message) {
         let decrypted_message;
 
         let new_message = document.createElement('div');
-        new_message.classList.add(msg.from === 'julie' ? 'message_send' : 'message_received');
+        new_message.classList.add(msg.from === from ? 'message_send' : 'message_received');
 
         let new_p = document.createElement('p');
 
-        if (msg.from == 'julie') {
+        if (msg.from == from) {
             decrypted_message = msg.encrypted && msg.message_clair
             ? msg.message_clair
             : msg.message;
         } else if(msg.encrypted) {
+            let decrypted_blocks;
+
             if(Array.isArray(msg.message)) {
-                let blocks = msg.message;
-                let decrypted_blocks = blocks.map(part => {
-                    let decrypted_number = RSA_decryption(BigInt(part), d_julie, n_julie);
-                    return convert_number_to_message(decrypted_number);
-                });
+                if(from == 'tom') {
+                    decrypted_blocks = decrypted_block(d_tom, n_tom, msg.message);
+                } else if(from == 'julie') {
+                    decrypted_blocks = decrypted_block(d_julie, n_julie, msg.message);
+                }
                 decrypted_message = decrypted_blocks.join('');
-                decrypted_message = remove_salt(decrypted_message, msg.lenght_salt);
+                decrypted_message = remove_salt(decrypted_message, msg.length_salt);
             } else {
-                let decrypted_number = RSA_decryption(BigInt(msg.message), d_julie, n_julie);
+                let decrypted_number;
+                if(from == 'tom') {
+                    decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
+                } else if(from == 'julie') {
+                    decrypted_number = RSA_decryption(BigInt(msg.message), d_julie, n_julie);
+                }
                 decrypted_message = convert_number_to_message(decrypted_number);
             }
 
-            let e_tom = BigInt(information_tom.public_key.e);
-            let n_tom = BigInt(information_tom.public_key.n);
+            let is_valid;
+
+            if(from =='julie') {
+                is_valid = rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie)
+            } else if(from == 'tom') {
+                is_valid = rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom)
+            } 
             
-            if (rsa_signature_verification(decrypted_message, msg.signature, e_tom, n_tom)) {
-                decrypted_message += '\n✅ (Signature verified)';
-            } else {
-                decrypted_message += '\n⚠️ (invalid signature)';
-            }
-        } else {
-            decrypted_message = msg.message;
-            decrypted_message += '\n⚠️ (unencrypted message)';
-        }
-            
-
-        new_p.textContent = decrypted_message;
-        new_message.appendChild(new_p);
-        screen.appendChild(new_message);
-        screen.scrollTop = screen.scrollHeight;
-    }
-}
-
-async function display_message_for_tom(message, chatElement) {
-    let screen = chatElement.querySelector('.screen');
-    let information_tom = JSON.parse(localStorage.getItem('information_tom'));
-    let information_julie = JSON.parse(localStorage.getItem('information_julie'));
-
-    if (!information_tom || !information_tom.private_key) return alert('Missing public key');
-    if (!information_julie || !information_julie.public_key) return alert('Missing private key');
-
-    let d_tom = BigInt(information_tom.private_key.d);
-    let n_tom = BigInt(information_tom.private_key.n);
-
-    for (let msg of message) {
-        let decrypted_message;
-
-        let new_message = document.createElement('div');
-        new_message.classList.add(msg.from === 'tom' ? 'message_send' : 'message_received');
-
-        let new_p = document.createElement('p');
-
-        if (msg.from == 'tom') {
-            decrypted_message = msg.encrypted && msg.message_clair
-            ? msg.message_clair
-            : msg.message;
-        } else if(msg.encrypted) {
-            if(Array.isArray(msg.message)) {
-                let blocks = msg.message;
-                let decrypted_blocks = blocks.map(part => {
-                    let decrypted_number = RSA_decryption(BigInt(part), d_tom, n_tom);
-                    return convert_number_to_message(decrypted_number);
-                });
-                decrypted_message = decrypted_blocks.join('');
-                decrypted_message = remove_salt(decrypted_message, msg.lenght_salt);
-            } else {
-                let decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
-                decrypted_message = convert_number_to_message(decrypted_number);
-            }
-
-            let e_julie = BigInt(information_julie.public_key.e);
-            let n_julie = BigInt(information_julie.public_key.n);
-            
-            if (rsa_signature_verification(decrypted_message, msg.signature, e_julie, n_julie)) {
+            if (is_valid) {
                 decrypted_message += '\n✅ (Signature verified)';
             } else {
                 decrypted_message += '\n⚠️ (invalid signature)';
@@ -471,8 +366,23 @@ async function display_message_for_tom(message, chatElement) {
     }
 }
 
-async function send_by_tom() {
-    let message = document.getElementById('message_write_2').value;
+function refresh_messages() {
+    let chat_1_element = document.getElementById('chat_1');
+    let chat_2_element = document.getElementById('chat_2');
+    let chat_hack_element = document.getElementById('chat_hack');
+
+    let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
+
+    if (discusion_julie_tom.length === 0) return;
+
+    let lastMessage = discusion_julie_tom[discusion_julie_tom.length - 1];
+
+    display_message([lastMessage], chat_2_element, 'tom');
+    display_message([lastMessage], chat_1_element, 'julie');
+}
+
+async function send_message(message_elem, from) {
+    let message = document.getElementById(message_elem).value;
 
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
@@ -480,52 +390,71 @@ async function send_by_tom() {
 
     let state_button = localStorage.getItem('mode_button') || 'off';
 
-    if (!information_tom || !information_tom.private_key) return alert('Missing public key');
-    if (!information_julie || !information_julie.public_key) return alert('Missing private key');
+    if (!information_tom || !information_tom.private_key) return alert('Missing private key');
+    if (!information_julie || !information_julie.private_key) return alert('Missing private key');
+    if (!information_julie || !information_julie.public_key) return alert('Missing public key');
+    if (!information_tom || !information_tom.public_key) return alert('Missing public key');
 
     let d_tom = BigInt(information_tom.private_key.d);
     let n_tom = BigInt(information_tom.private_key.n);
+    let e_tom = BigInt(information_tom.public_key.e);
 
+    let d_julie = BigInt(information_julie.private_key.d);
+    let n_julie= BigInt(information_julie.private_key.n);
     let e_julie = BigInt(information_julie.public_key.e);
-    let n_julie = BigInt(information_julie.public_key.n);
 
     if (state_button == 'off') {
         discusion_julie_tom.push({
-            from: 'tom',
+            from: from,
             message: message.toString(),
             encrypted: false,
             timestamp: Date.now()
         });
     } else {
-        let salt = generate_salt(lenght_salt);
+        let salt = generate_salt(length_salt);
         let message_salt = `${salt}::${message}`;
 
-        let messages_blocks = rsa_safe_block_split(message_salt, n_julie);
-        let encrypted_blocks = messages_blocks.map(block => {
-            let message_to_number = convert_message_to_number(block);
-            if (message_to_number >= n_julie) {
-                throw new Error('Message block too large for encryption modulus');
-            }
-            return RSA_encryption(e_julie, message_to_number, n_julie).toString();
-        });
+        let encrypted_blocks;
+        let signature;
 
-        let signature = await rsa_signature(message, d_tom, n_tom);
+        if(from == 'julie') {
+            let messages_blocks = rsa_safe_block_split(message_salt, n_tom);
+            encrypted_blocks = messages_blocks.map(block => {
+                let message_to_number = convert_message_to_number(block);
+                if (message_to_number >= n_tom) {
+                    throw new Error('Message block too large for encryption modulus');
+                }
+                return RSA_encryption(e_tom, message_to_number, n_tom).toString();
+            });
+
+            signature = await rsa_signature(message, d_julie, n_julie);
+
+        } else if(from == 'tom'){
+            let messages_blocks = rsa_safe_block_split(message_salt, n_julie);
+            encrypted_blocks = messages_blocks.map(block => {
+                let message_to_number = convert_message_to_number(block);
+                if (message_to_number >= n_julie) {
+                    throw new Error('Message block too large for encryption modulus');
+                }
+                return RSA_encryption(e_julie, message_to_number, n_julie).toString();
+            });
+
+            signature = await rsa_signature(message, d_tom, n_tom);
+        }
 
         discusion_julie_tom.push({
-            from: 'tom',
+            from: from,
             message: encrypted_blocks,
             message_clair: message,
             encrypted: true,
             timestamp: Date.now(),
             signature: signature,
-            lenght_salt : lenght_salt+2
+            length_salt : length_salt+2
         });
     }
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
-    document.getElementById('message_write_2').value = '';
+    document.getElementById(message_elem).value = '';
 
     refresh_messages();
 }
-
-const lenght_salt = 256
