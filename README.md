@@ -11,7 +11,7 @@
 ![Language](https://img.shields.io/badge/langage-english-blue)
 
 ### 📄 Licence
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/arthur10o/RSA_Cryptographic_Algorithm_Simulator?tab=MIT-1-ov-file#readme)
 
 ### 📊 GitHub statistics
 ![Repo Size](https://img.shields.io/github/repo-size/arthur10o/RSA_Cryptographic_Algorithm_Simulator)
