@@ -10,7 +10,7 @@
                 <label class="switch">
                     <input type="checkbox" id="monSwitch">
                     <span class="slider"></span>
-                  </label>
+                </label>
                 <section id="chat_1">
                     <h1>Julie's discussion</h1>
                     <div class="phone">
@@ -54,11 +54,15 @@
                         </div>
                         <div class="text_area">
                             <textarea placeholder="Send a message..." id="message_write_3"></textarea>
-                            <button>Send</button>
+                            <button onclick="send_message('message_write_3', 'hacker')">Send</button>
                         </div>
                         <div class="home_button"></div>
                     </div>
                 </section>
+                <label class="switch">
+                    <input type="checkbox" id="hack_activate">
+                    <span class="slider"></span>
+                </label>
             </div>
         </body>
         <script src='./js/script_index.js'></script>

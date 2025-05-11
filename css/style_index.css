@@ -209,4 +209,11 @@ button {
 
   input:checked + .slider:before {
     transform: translateX(26px);
-  }  
+  }
+
+.message_info {
+    font-size: 0.9em;
+    font-style: italic;
+    color: darkorange;
+    margin: 5px 10px;
+}
