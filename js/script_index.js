@@ -367,14 +367,23 @@ async function display_message(message, chatElement, from) {
                 decrypted_message = remove_salt(decrypted_message);
             } else {
                 let decrypted_number;
-                if(from == 'tom') {
-                    decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
-                } else if(from == 'julie') {
-                    decrypted_number = RSA_decryption(BigInt(msg.message), d_julie, n_julie);
-                } else if(from == 'hacker') {
-                    decrypted_number = RSA_decryption(BigInt(msg.message), d_hacker, n_hacker);
+                if(msg.message == undefined) {
+                    decrypted_message = '[Message error: message not defined]';
+                } else {
+                    try {
+                        if(from == 'tom') {
+                            decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
+                        } else if(from == 'julie') {
+                            decrypted_number = RSA_decryption(BigInt(msg.message), d_julie, n_julie);
+                        } else if(from == 'hacker') {
+                            decrypted_number = RSA_decryption(BigInt(msg.message), d_hacker, n_hacker);
+                        }
+                        decrypted_message = convert_number_to_message(decrypted_number);
+                    } catch(e) {
+                        decrypted_message = "[Decryption error]";
+                        console.error("Erreur RSA_decryption :", e);
+                    }
                 }
-                decrypted_message = convert_number_to_message(decrypted_number);
             }
 
             let is_valid;
@@ -439,21 +448,29 @@ async function send_message(message_elem, from) {
     let discusion_julie_tom = JSON.parse(localStorage.getItem('discussion_julie_tom')) || [];
     let information_tom = JSON.parse(localStorage.getItem('information_tom'));
     let information_julie = JSON.parse(localStorage.getItem('information_julie'));
+    let information_hacker = JSON.parse(localStorage.getItem('information_hacker'));
 
     let state_button = localStorage.getItem('mode_button') || 'off';
+    let state_button_hack = localStorage.getItem('hack_state') || 'off';
 
     if (!information_tom || !information_tom.private_key) return alert('Missing private key');
     if (!information_julie || !information_julie.private_key) return alert('Missing private key');
+    if (!information_hacker || !information_hacker.private_key) return alert('Missing private key');
     if (!information_julie || !information_julie.public_key) return alert('Missing public key');
     if (!information_tom || !information_tom.public_key) return alert('Missing public key');
+    if (!information_hacker || !information_hacker.public_key) return alert('Missing public key');
 
     let d_tom = BigInt(information_tom.private_key.d);
     let n_tom = BigInt(information_tom.private_key.n);
     let e_tom = BigInt(information_tom.public_key.e);
 
     let d_julie = BigInt(information_julie.private_key.d);
-    let n_julie= BigInt(information_julie.private_key.n);
+    let n_julie = BigInt(information_julie.private_key.n);
     let e_julie = BigInt(information_julie.public_key.e);
+
+    let d_hacker = BigInt(information_hacker.private_key.d);
+    let n_hacker = BigInt(information_hacker.private_key.n);
+    let e_hacker = BigInt(information_hacker.public_key.e);
 
     if (state_button == 'off') {
         discusion_julie_tom.push(message_to_send(from, message, false));
