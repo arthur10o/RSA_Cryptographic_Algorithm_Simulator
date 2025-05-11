@@ -43,7 +43,7 @@ It illustrates secure exchanges between two users and the attempted intrusion of
 1. Clone the Git repository :
 
 ```bash
-    git clone https://github.com/arthur10o/RSA_Cryptographic_Algorithm_Simulator
+    git clone https://github.com/arthur10o/RSA_Cryptographic_Algorithm_Simulator.git
 ```
 2. Go to the project directory
 
