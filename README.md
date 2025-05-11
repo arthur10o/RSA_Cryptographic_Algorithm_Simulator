@@ -22,7 +22,7 @@
 1. [Description](#-Description)
 2. [Features](#-Features)
 3. [Run Locally](#-Run-Locally)
-4. [Color references](#-Color-references)
+4. [Color references](#-Color-Reference)
 5. [Author](#-Author)
 6. [License](#-License)
 
