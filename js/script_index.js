@@ -22,11 +22,7 @@ addEventListener('load', function () {
     let switchInput = document.getElementById('monSwitch');
     let state_button = localStorage.getItem('mode_button') || 'off';
 
-    let state_button_hack = localStorage.getItem('hack_state') || 'off';
-
-    if(state_button_hack == 'off') {
-        localStorage.setItem('hack_state', 'off');
-    }
+    localStorage.setItem('hack_state', 'off');
 
     if (state_button === 'on') {
         switchInput.checked = true;
