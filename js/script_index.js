@@ -364,7 +364,13 @@ async function display_message(message, chatElement, from) {
                     ? remove_salt(decrypted_block(d_julie, n_julie, msg.message_for_sender).join(''))
                     : msg.message;
             }
-        } else if(msg.encrypted) {
+        } else if (from === 'hacker') {
+            if(msg.encrypted){
+                decrypted_message = '[Encrypted message intercepted] 🔒\n' + JSON.stringify(msg.message_for_sender) + `\n\nFrom : ` + JSON.stringify(msg.from);
+            } else{
+                decrypted_message = '[Encrypted message intercepted] 🔒\n' + JSON.stringify(msg.message) + `\n\nFrom : ` + JSON.stringify(msg.from);
+            }
+        }else if (msg.encrypted) {
             let decrypted_blocks;
 
             if(Array.isArray(msg.message)) {
