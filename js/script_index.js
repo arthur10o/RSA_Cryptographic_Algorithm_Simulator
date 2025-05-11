@@ -363,10 +363,6 @@ async function display_message(message, chatElement, from) {
                 decrypted_message = msg.encrypted && msg.message_for_sender
                     ? remove_salt(decrypted_block(d_julie, n_julie, msg.message_for_sender).join(''))
                     : msg.message;
-            } else if (from == 'hacker') {
-                decrypted_message = msg.encrypted && msg.message_for_sender
-                    ? remove_salt(decrypted_block(d_hacker, n_hacker, msg.message_for_sender).join(''))
-                    : msg.message;
             }
         } else if(msg.encrypted) {
             let decrypted_blocks;
@@ -376,8 +372,6 @@ async function display_message(message, chatElement, from) {
                     decrypted_blocks = decrypted_block(d_tom, n_tom, msg.message);
                 } else if(from == 'julie') {
                     decrypted_blocks = decrypted_block(d_julie, n_julie, msg.message);
-                } else if(from == 'hacker') {
-                    decrypted_blocks = decrypted_block(d_hacker, n_hacker, msg.message);
                 }
                 decrypted_message = decrypted_blocks.join('');
                 decrypted_message = remove_salt(decrypted_message);
@@ -391,8 +385,6 @@ async function display_message(message, chatElement, from) {
                             decrypted_number = RSA_decryption(BigInt(msg.message), d_tom, n_tom);
                         } else if(from == 'julie') {
                             decrypted_number = RSA_decryption(BigInt(msg.message), d_julie, n_julie);
-                        } else if(from == 'hacker') {
-                            decrypted_number = RSA_decryption(BigInt(msg.message), d_hacker, n_hacker);
                         }
                         decrypted_message = convert_number_to_message(decrypted_number);
                     } catch(e) {
@@ -467,7 +459,6 @@ async function send_message(message_elem, from) {
     let information_hacker = JSON.parse(localStorage.getItem('information_hacker'));
 
     let state_button = localStorage.getItem('mode_button') || 'off';
-    let state_button_hack = localStorage.getItem('hack_state') || 'off';
 
     if (!information_tom || !information_tom.private_key) return alert('Missing private key');
     if (!information_julie || !information_julie.private_key) return alert('Missing private key');
