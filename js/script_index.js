@@ -21,7 +21,13 @@ addEventListener('load', function () {
 
     let switchInput = document.getElementById('monSwitch');
     let state_button = localStorage.getItem('mode_button') || 'off';
-    
+
+    let state_button_hack = localStorage.getItem('hack_state') || 'off';
+
+    if(state_button_hack == 'off') {
+        localStorage.setItem('hack_state', 'off');
+    }
+
     if (state_button === 'on') {
         switchInput.checked = true;
     } else {
@@ -37,6 +43,16 @@ document.getElementById('monSwitch').addEventListener('change', function () {
         localStorage.setItem('mode_button', 'on');
     } else {
         localStorage.setItem('mode_button', 'off');
+    }
+
+    toogle_button();
+});
+
+document.getElementById('hack_activate').addEventListener('change', function () {
+    if (this.checked) {
+        localStorage.setItem('hack_state', 'on');
+    } else {
+        localStorage.setItem('hack_state', 'off');
     }
 
     toogle_button();
