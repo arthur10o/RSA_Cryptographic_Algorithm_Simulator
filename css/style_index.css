@@ -216,4 +216,5 @@ button {
     font-style: italic;
     color: darkorange;
     margin: 5px 10px;
+    background-color: inherit;
 }
