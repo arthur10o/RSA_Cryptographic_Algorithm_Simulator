@@ -22,9 +22,9 @@
 1. [Description](#-Description)
 2. [Features](#-Features)
 3. [Run Locally](#-Run-Locally)
-4. [Color references](#color-reference)
-5. [Authors](#authors)
-6. [License](#license)
+4. [Color references](#-color-reference)
+5. [Authors](#-authors)
+6. [License](#-license)
 
 ## 📖 Description
 
@@ -72,7 +72,7 @@ It illustrates secure exchanges between two users and the attempted intrusion of
 |orange         | #FF8C00 |
 
 
-## License
+## 📄 License
 
 This project is licensed under [MIT](https://choosealicense.com/licenses/mit/).
 
