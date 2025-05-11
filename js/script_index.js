@@ -283,7 +283,7 @@ async function sha256(message) {
 
 async function rsa_signature(message, d, n) {
     if (typeof message !== 'string') {
-        throw new Error("Le message doit être une chaîne de caractères");
+        throw new Error("The message must be a string");
     }
     let message_hash = await sha256(message);
     let message_number = convert_message_to_number(message_hash);
@@ -332,15 +332,9 @@ async function display_message(message, chatElement, from) {
 
     let d_tom = BigInt(information_tom.private_key.d);
     let n_tom = BigInt(information_tom.private_key.n);
-    let e_tom = BigInt(information_tom.public_key.e);
 
     let d_julie = BigInt(information_julie.private_key.d);
     let n_julie = BigInt(information_julie.private_key.n);
-    let e_julie = BigInt(information_julie.public_key.e);
-
-    let d_hacker = BigInt(information_hacker.private_key.d);
-    let n_hacker = BigInt(information_hacker.private_key.n);
-    let e_hacker = BigInt(information_hacker.public_key.e);
 
     for (let msg of message) {
         let decrypted_message;
@@ -366,7 +360,7 @@ async function display_message(message, chatElement, from) {
             } else{
                 decrypted_message = '[Encrypted message intercepted] 🔒\n' + JSON.stringify(msg.message) + `\n\nFrom : ` + JSON.stringify(msg.from);
             }
-        }else if (msg.encrypted) {
+        } else if (msg.encrypted) {
             let decrypted_blocks;
 
             if(Array.isArray(msg.message)) {
@@ -402,8 +396,8 @@ async function display_message(message, chatElement, from) {
                 is_valid = await rsa_signature_verification(decrypted_message, msg.signature, n_julie, d_julie);
             } else if(msg.from == 'tom') {
                 is_valid = await rsa_signature_verification(decrypted_message, msg.signature, n_tom, d_tom);
-            } 
-            
+            }
+
             if (is_valid) {
                 decrypted_message += '\n✅ (Signature verified)';
             } else {
@@ -414,9 +408,17 @@ async function display_message(message, chatElement, from) {
             decrypted_message += '\n⚠️ (unencrypted message)';
         }
 
-        new_p.textContent = decrypted_message;
-        new_message.appendChild(new_p);
-        screen.appendChild(new_message);
+        if ((localStorage.getItem('hack_state') === 'on') && msg.encrypted) {
+            let mitm_notice = document.createElement('div');
+            mitm_notice.className = 'message_info';
+            mitm_notice.textContent = '⚠️ This message has been altered by an MITM attack';
+            screen.appendChild(mitm_notice);
+        } else {
+            new_p.textContent = decrypted_message;
+            new_message.appendChild(new_p);
+            screen.appendChild(new_message);
+        }
+
         screen.scrollTop = screen.scrollHeight;
     }
 }
@@ -448,6 +450,37 @@ function message_to_send(from, message, encrypted_state, signature = '', message
     };
 }
 
+function mitm_attack(is_encrypted, target) {
+    const hacked_message_prefix = "hacked::";
+    const fake_text = generate_salt(20);
+    const hacked_full_message = hacked_message_prefix + fake_text;
+
+    let target_n;
+    let target_e;
+
+    if(target == 'julie') {
+        let information_julie = JSON.parse(localStorage.getItem('information_julie'));
+        target_n = BigInt(information_julie.public_key.n);
+        target_e = BigInt(information_julie.public_key.e);
+    } else if(target == 'tom') {
+        let information_tom = JSON.parse(localStorage.getItem('information_tom'));
+        target_n = BigInt(information_tom.public_key.n);
+        target_e = BigInt(information_tom.public_key.e);
+    }
+    if (is_encrypted) {
+        let blocks = rsa_safe_block_split(hacked_full_message, target_n);
+
+        let encrypted_blocks = blocks.map(block => {
+            let message_number = convert_message_to_number(block);
+            return RSA_encryption(target_e, message_number, target_n).toString();
+        });
+
+        return encrypted_blocks;
+    } else {
+        return hacked_full_message;
+    }
+}
+
 async function send_message(message_elem, from) {
     let message = document.getElementById(message_elem).value;
 
@@ -461,6 +494,7 @@ async function send_message(message_elem, from) {
     let information_hacker = JSON.parse(localStorage.getItem('information_hacker'));
 
     let state_button = localStorage.getItem('mode_button') || 'off';
+    let hack_state = localStorage.getItem('hack_state');
 
     if (!information_tom || !information_tom.private_key) return alert('Missing private key');
     if (!information_julie || !information_julie.private_key) return alert('Missing private key');
@@ -477,12 +511,18 @@ async function send_message(message_elem, from) {
     let n_julie = BigInt(information_julie.private_key.n);
     let e_julie = BigInt(information_julie.public_key.e);
 
-    let d_hacker = BigInt(information_hacker.private_key.d);
-    let n_hacker = BigInt(information_hacker.private_key.n);
-    let e_hacker = BigInt(information_hacker.public_key.e);
-
     if (state_button == 'off') {
-        discusion_julie_tom.push(message_to_send(from, message, false));
+        if (hack_state == 'on') {
+            let message_after_mitm;
+            if(from  == 'julie') {
+                message_after_mitm = mitm_attack(false, 'julie');
+            } else if(from  == 'tom') {
+                message_after_mitm = mitm_attack(false, 'tom');
+            }
+            discusion_julie_tom.push(message_to_send(from, message_after_mitm, false));
+        } else {
+            discusion_julie_tom.push(message_to_send(from, message, false));
+        }
     } else {
         let salt = generate_salt(length_salt);
         let message_salt = `${salt}::${message}`;
@@ -533,7 +573,17 @@ async function send_message(message_elem, from) {
 
             signature = await rsa_signature(message, d_tom, n_tom);
         }
-        discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, message_for_sender));
+        if (hack_state == 'on') {
+            let message_after_mitm;
+            if(from == 'julie') {
+                message_after_mitm = mitm_attack(true, 'julie');
+            } else if(from == 'tom') {
+                message_after_mitm = mitm_attack(true, 'tom');
+            }
+            discusion_julie_tom.push(message_to_send(from, message_after_mitm, true, signature, message_for_sender));
+        } else {
+            discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, message_for_sender));
+        }
     }
 
     localStorage.setItem('discussion_julie_tom', JSON.stringify(discusion_julie_tom));
