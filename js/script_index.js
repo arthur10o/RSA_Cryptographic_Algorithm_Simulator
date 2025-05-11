@@ -356,9 +356,9 @@ async function display_message(message, chatElement, from) {
             }
         } else if (from === 'hacker') {
             if(msg.encrypted){
-                decrypted_message = '[Encrypted message intercepted] 🔒\n' + JSON.stringify(msg.message_for_sender) + `\n\nFrom : ` + JSON.stringify(msg.from);
+                decrypted_message = '[Encrypted message intercepted] :\n' + JSON.stringify(msg.message_for_sender) + `\n\nFrom : ` + JSON.stringify(msg.from);
             } else{
-                decrypted_message = '[Encrypted message intercepted] 🔒\n' + JSON.stringify(msg.message) + `\n\nFrom : ` + JSON.stringify(msg.from);
+                decrypted_message = '[Message intercepted] :\n' + JSON.stringify(msg.message) + `\n\nFrom : ` + JSON.stringify(msg.from);
             }
         } else if (msg.encrypted) {
             let decrypted_blocks;
@@ -408,7 +408,7 @@ async function display_message(message, chatElement, from) {
             decrypted_message += '\n⚠️ (unencrypted message)';
         }
 
-        if ((localStorage.getItem('hack_state') === 'on') && msg.encrypted) {
+        if (msg.MITM_attack === true && msg.encrypted) {
             let mitm_notice = document.createElement('div');
             mitm_notice.className = 'message_info';
             mitm_notice.textContent = '⚠️ This message has been altered by an MITM attack';
@@ -439,14 +439,15 @@ function refresh_messages() {
     display_message([lastMessage], chat_hack_element, 'hacker');
 }
 
-function message_to_send(from, message, encrypted_state, signature = '', message_for_sender) {
+function message_to_send(from, message, encrypted_state, mitm_attack, signature = '', message_for_sender) {
     return {
         from: from,
         message: message,
         message_for_sender: message_for_sender,
         encrypted: encrypted_state,
         timestamp: Date.now(),
-        signature: signature
+        signature: signature,
+        MITM_attack: mitm_attack
     };
 }
 
@@ -519,9 +520,9 @@ async function send_message(message_elem, from) {
             } else if(from  == 'tom') {
                 message_after_mitm = mitm_attack(false, 'tom');
             }
-            discusion_julie_tom.push(message_to_send(from, message_after_mitm, false));
+            discusion_julie_tom.push(message_to_send(from, message_after_mitm, false, true));
         } else {
-            discusion_julie_tom.push(message_to_send(from, message, false));
+            discusion_julie_tom.push(message_to_send(from, message, false, false));
         }
     } else {
         let salt = generate_salt(length_salt);
@@ -580,9 +581,9 @@ async function send_message(message_elem, from) {
             } else if(from == 'tom') {
                 message_after_mitm = mitm_attack(true, 'tom');
             }
-            discusion_julie_tom.push(message_to_send(from, message_after_mitm, true, signature, message_for_sender));
+            discusion_julie_tom.push(message_to_send(from, message_after_mitm, true, true, signature, message_for_sender));
         } else {
-            discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, signature, message_for_sender));
+            discusion_julie_tom.push(message_to_send(from, encrypted_blocks, true, false, signature, message_for_sender));
         }
     }
 
