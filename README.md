@@ -57,7 +57,7 @@ It illustrates secure exchanges between two users and the attempted intrusion of
 
 - [@arthur10o](https://www.github.com/arthur10o)
 
-## Color Reference
+## 🎨 Color Reference
 
 | Color             | Hex                                                                |
 | ----------------- | ------------------------------------------------------------------ |
