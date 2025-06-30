@@ -31,8 +31,8 @@ body {
     border: 1px solid #ccc;
     padding: 10px;
     text-align: center;
-    overflow: auto;
     background-color: inherit;
+    border: none;
 }
 
 h1,
