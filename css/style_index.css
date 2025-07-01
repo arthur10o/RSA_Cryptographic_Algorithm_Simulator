@@ -15,6 +15,15 @@ body {
     width: 100vw;
 }
 
+.title_button {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: white;
+    background-color: inherit;
+    padding: 5px 10px;
+    display: inline-block;
+}
+
 #container {
     display: flex;
     gap: 10px;
