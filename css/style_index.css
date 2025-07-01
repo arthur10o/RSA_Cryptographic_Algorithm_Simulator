@@ -32,8 +32,16 @@ body {
     padding: 10px;
     text-align: center;
     background-color: inherit;
-    border: none;
     padding-bottom: 20px;
+    border: none;
+    max-width: 500px;
+}
+
+.message {
+    max-width: 100%;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: pre-wrap;
 }
 
 h1,
@@ -90,6 +98,7 @@ button {
     justify-content: center;
     margin: 10px auto;
     background-color: inherit;
+    max-width: 50%;
 }
 
 .text_area textarea {
@@ -137,7 +146,6 @@ button {
     display: inline-block;
     word-wrap: break-word;
     white-space: pre-wrap;
-    max-width: 50%;
 }
 
 .message_send {

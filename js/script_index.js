@@ -296,7 +296,7 @@ async function rsa_signature_verification(message_decrypted, signature_encrypted
 }
 
 function generate_salt(lenght) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&~"#{}()[]-|`_^@=°+-*/£¤$%§!/:.;?,<>²çâêûîôìùòñùµéèà';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÀÄÂÅÆÇÉÈËÊÍÌÎÏÑÓÒÔÖÚÙÛÜÝØáàäâåæçéèëêíìîïñóòôöúùûüµýÿø0123456789²{}()[]<>«»"`’¨^~°&#@£¤$%§©®+-*/\=|_!?:.;,';
     let result = '';
     for(let i = 0; i < lenght; i++) {
         const random_index = Math.floor(Math.random() * chars.length);
@@ -343,6 +343,7 @@ async function display_message(message, chatElement, from) {
         new_message.classList.add(msg.from === from ? 'message_send' : 'message_received');
 
         let new_p = document.createElement('p');
+        new_p.classList.add("message");
 
         if (msg.from == from) {
             if(from == 'tom') {
